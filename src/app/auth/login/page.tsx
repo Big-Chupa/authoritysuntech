@@ -29,6 +29,8 @@ export default function LoginPage() {
         localStorage.setItem('suntech_token', data.token);
         localStorage.setItem('suntech_user', JSON.stringify(data.user));
 
+        window.dispatchEvent(new Event('suntech_auth_change'));
+
         if (data.user.role === 'admin' || data.user.role === 'superadmin') {
           router.push('/admin');
         } else {

@@ -30,6 +30,9 @@ export default function RegisterPage() {
       if (data.success) {
         localStorage.setItem('suntech_token', data.token);
         localStorage.setItem('suntech_user', JSON.stringify(data.user));
+
+        window.dispatchEvent(new Event('suntech_auth_change'));
+
         router.push('/dashboard');
       } else {
         setError(data.message || 'Registration failed');
