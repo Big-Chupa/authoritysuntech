@@ -3,7 +3,7 @@ import { initializePaystackTransaction } from '@/lib/paystack';
 
 export async function POST(req: Request) {
   try {
-    const { email, amount, metadata } = await req.json();
+    const { email, amount, metadata, callback_url } = await req.json();
 
     if (!email || !amount) {
       return NextResponse.json({ success: false, message: 'Email and amount are required' }, { status: 400 });
@@ -15,6 +15,7 @@ export async function POST(req: Request) {
       email,
       amount,
       reference,
+      callback_url,
       metadata,
     });
 

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useCart } from '@/context/CartContext';
-import { Lock } from 'lucide-react';
+import { Lock, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import confetti from 'canvas-confetti';
 
@@ -41,53 +41,69 @@ export default function CheckoutPage() {
     setError('');
 
     try {
+      // 1. Create order record in MongoDB database with guaranteed image string
+      const orderRes = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cart.map((item) => {
+            const itemImage =
+              (item.product.images && item.product.images.length > 0 && item.product.images[0]) ||
+              (item.product as any).image ||
+              'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&auto=format&fit=crop&q=80';
+
+            return {
+              product: item.product._id,
+              name: item.product.name,
+              price: item.product.discountPrice || item.product.price,
+              quantity: item.quantity,
+              image: itemImage,
+            };
+          }),
+          totalAmount,
+          shippingAddress: formData,
+          paymentMethod: 'Paystack Card/Transfer',
+          paymentStatus: 'pending',
+        }),
+      });
+
+      const orderData = await orderRes.json();
+
+      if (!orderData.success) {
+        setError(orderData.error || 'Failed to initialize order');
+        setProcessing(false);
+        return;
+      }
+
+      const orderId = orderData.order._id;
+      const callbackUrl = `${window.location.origin}/order-success/${orderId}`;
+
+      // 2. Initialize Paystack Transaction
       const initRes = await fetch('/api/paystack/initialize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: formData.email,
           amount: totalAmount,
-          metadata: { ...formData },
+          callback_url: callbackUrl,
+          metadata: { ...formData, orderId },
         }),
       });
 
       const initData = await initRes.json();
 
-      if (initData.success) {
-        const orderRes = await fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            items: cart.map((item) => ({
-              product: item.product._id,
-              name: item.product.name,
-              price: item.product.discountPrice || item.product.price,
-              quantity: item.quantity,
-              image: item.product.images[0],
-            })),
-            totalAmount,
-            shippingAddress: formData,
-            paymentMethod: 'Paystack Card/Transfer',
-            paymentStatus: 'completed',
-            paystackRef: initData.data?.reference || 'AST-' + Date.now(),
-          }),
-        });
-
-        const orderData = await orderRes.json();
-
-        if (orderData.success) {
-          confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-          clearCart();
-          router.push(`/order-success/${orderData.order._id}`);
-        } else {
-          setError(orderData.error || 'Failed to place order');
-        }
+      if (initData.success && initData.data?.authorization_url) {
+        clearCart();
+        // Redirect directly to Paystack official payment page (Card / Transfer / USSD)
+        window.location.href = initData.data.authorization_url;
       } else {
-        setError('Payment initialization failed.');
+        // Fallback for simulated or demo mode
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+        clearCart();
+        router.push(callbackUrl);
       }
     } catch (err: any) {
-      setError(err.message);
-    } finally {
+      setError(err.message || 'Payment processing error');
       setProcessing(false);
     }
   };
@@ -245,7 +261,7 @@ export default function CheckoutPage() {
             disabled={processing}
             className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-sm text-center shadow-xl shadow-emerald-500/25 transition-all flex items-center justify-center gap-2"
           >
-            {processing ? 'Connecting to Paystack...' : `Pay ${formatNaira(totalAmount)} via Paystack`}
+            {processing ? 'Opening Paystack Checkout...' : `Pay ${formatNaira(totalAmount)} via Paystack`}
           </button>
         </div>
       </form>

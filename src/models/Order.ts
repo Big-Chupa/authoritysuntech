@@ -37,7 +37,10 @@ const OrderSchema = new Schema<IOrderDoc>(
         name: { type: String, required: true },
         price: { type: Number, required: true },
         quantity: { type: Number, required: true },
-        image: { type: String, required: true },
+        image: {
+          type: String,
+          default: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&auto=format&fit=crop&q=80',
+        },
       },
     ],
     totalAmount: { type: Number, required: true },
