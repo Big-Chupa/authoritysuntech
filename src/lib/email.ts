@@ -1,3 +1,5 @@
+import nodemailer from 'nodemailer';
+
 export interface EmailOptions {
   to: string;
   subject: string;
@@ -10,13 +12,12 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
 
-  if (!smtpHost || !smtpUser || !smtpPass) {
+  if (!smtpHost || !smtpUser || !smtpPass || smtpPass === 'your_app_password_here') {
     console.log(`[Email Simulation Mode] To: ${options.to} | Subject: ${options.subject}`);
     return true;
   }
 
   try {
-    const nodemailer = await import('nodemailer');
     const transporter = nodemailer.createTransport({
       host: smtpHost,
       port: Number(smtpPort) || 587,
