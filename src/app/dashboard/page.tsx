@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useCart } from '@/context/CartContext';
 import { ProductCard } from '@/components/ProductCard';
 import { User, Package, Heart, LogOut, Shield, Printer, CheckCircle2, Clock, MapPin, Phone, Mail, ArrowRight, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get('tab') as any) || 'orders';
 
@@ -395,3 +395,18 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+export default function DashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[60vh] flex items-center justify-center text-slate-400 font-mono text-sm">
+          Loading Authority SunTech dashboard...
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
