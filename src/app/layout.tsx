@@ -7,7 +7,7 @@ import { Footer } from '@/components/Footer';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.authoritysuntech.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://authoritysuntech.com'),
   title: {
     default: 'Authority SunTech | Powering Homes & Businesses with Smart Solar Energy',
     template: '%s | Authority SunTech',
@@ -28,12 +28,12 @@ export const metadata: Metadata = {
   creator: 'Authority SunTech',
   publisher: 'Authority SunTech',
   alternates: {
-    canonical: 'https://www.authoritysuntech.com',
+    canonical: 'https://authoritysuntech.com',
   },
   openGraph: {
     title: 'Authority SunTech | Solar Energy Solutions',
     description: 'High-quality solar panels, lithium batteries, and inverters in Nigerian Naira.',
-    url: 'https://www.authoritysuntech.com',
+    url: 'https://authoritysuntech.com',
     siteName: 'Authority SunTech',
     locale: 'en_NG',
     type: 'website',
